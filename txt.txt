@@ -158,3 +158,199 @@ triangle  1
 ### Заключение
 
 Этот пример демонстрирует, как с помощью MapReduce на Java можно подсчитывать количество различных объектов в наборе данных. MapReduce автоматически выполняет распределенную обработку данных на нескольких узлах Hadoop-кластера, что ускоряет процесс для больших объемов данных.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+На основании изображения, которое вы загрузили, давайте рассмотрим шаги для выполнения задачи MapReduce в **Hadoop** с использованием **Java**.
+
+### Описание процесса MapReduce:
+- **Шаг 0: Разделение данных в HDFS**.
+  - Данные (фигуры: квадраты, звезды, круги, сердечки и треугольники) уже разделены на 4 раздела в HDFS.
+  - Каждый раздел содержит определённое количество фигур, например:
+    ```
+    Раздел 1: квадрат, квадрат, звезда, звезда
+    Раздел 2: круг, круг
+    Раздел 3: сердечко, сердечко
+    Раздел 4: треугольник, треугольник
+    ```
+
+- **Шаг 1: Map — Кластеризация ключей**.
+  - Mapper будет сопоставлять фигуры с ключами. Каждый объект (фигура) становится ключом, а значением будет единица (для подсчета).
+  - Пример: квадрат → 1, звезда → 1, круг → 1.
+
+- **Шаг 2: Сортировка и перемешивание (Shuffle and Sort)**.
+  - На этом этапе ключи сортируются и перемешиваются, чтобы фигуры одного типа сгруппировались вместе.
+  - Пример: все "квадраты" будут отправлены в один Reduce процесс, "звезды" — в другой и так далее.
+
+- **Шаг 3: Reduce — Подсчет значений**.
+  - Reducer агрегирует данные, подсчитывая количество каждой фигуры.
+  - Пример: для квадратов будет подсчитано общее количество их появлений.
+
+### Пример Java-программы для выполнения этой задачи
+
+#### 1. Mapper (Сопоставление)
+
+Этот класс будет считывать строки и для каждой фигуры выдавать пару "ключ-значение".
+
+```java
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Mapper;
+
+import java.io.IOException;
+
+public class ShapeMapper extends Mapper<Object, Text, Text, IntWritable> {
+    
+    private final static IntWritable one = new IntWritable(1);
+    private Text shape = new Text();
+
+    public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+        String shapeStr = value.toString().trim();  // Чтение и удаление пробелов
+        shape.set(shapeStr);  // Установить фигуру как ключ
+        context.write(shape, one);  // Вывод пары: (фигура, 1)
+    }
+}
+```
+
+#### 2. Reducer (Агрегация)
+
+Reducer будет суммировать количество каждого типа фигур, переданных ему из этапа `Map`.
+
+```java
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Reducer;
+
+import java.io.IOException;
+
+public class ShapeReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+
+    private IntWritable result = new IntWritable();
+
+    public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
+        int sum = 0;  // Инициализация счетчика
+        for (IntWritable val : values) {
+            sum += val.get();  // Суммируем все значения для ключа (фигуры)
+        }
+        result.set(sum);
+        context.write(key, result);  // Выводим результат: (фигура, количество)
+    }
+}
+```
+
+#### 3. Main Class (Запуск Job)
+
+Создайте главный класс для настройки и запуска MapReduce задачи.
+
+```java
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
+public class ShapeCount {
+
+    public static void main(String[] args) throws Exception {
+        Configuration conf = new Configuration();
+        Job job = Job.getInstance(conf, "Shape Count");
+
+        job.setJarByClass(ShapeCount.class);
+        job.setMapperClass(ShapeMapper.class);
+        job.setCombinerClass(ShapeReducer.class);  // Optional
+        job.setReducerClass(ShapeReducer.class);
+
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        FileInputFormat.addInputPath(job, new Path(args[0]));  // Путь к входным данным
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));  // Путь для результата
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+}
+```
+
+### Шаги для запуска MapReduce Job
+
+1. **Подготовьте HDFS**:
+   - Загрузите данные (фигуры) в HDFS:
+
+     ```bash
+     hdfs dfs -mkdir /user/hadoop/shapes_data
+     hdfs dfs -put /path/to/shapes_data.txt /user/hadoop/shapes_data
+     ```
+
+2. **Компиляция программы**:
+
+   Перейдите в директорию с Java-кодом и выполните компиляцию:
+
+   ```bash
+   javac -classpath `hadoop classpath` -d . ShapeMapper.java ShapeReducer.java ShapeCount.java
+   jar cf shape_count.jar *.class
+   ```
+
+3. **Запуск программы**:
+
+   После создания JAR-файла запустите MapReduce задачу с помощью следующей команды:
+
+   ```bash
+   hadoop jar shape_count.jar ShapeCount /user/hadoop/shapes_data /user/hadoop/output_shapes
+   ```
+
+4. **Проверка результата**:
+
+   После завершения MapReduce Job, результаты будут сохранены в HDFS. Вы можете просмотреть их, используя следующую команду:
+
+   ```bash
+   hdfs dfs -cat /user/hadoop/output_shapes/part-r-00000
+   ```
+
+   Пример вывода:
+
+   ```
+   circle    2
+   heart     2
+   square    4
+   star      2
+   triangle  2
+   ```
+
+### Заключение
+Этот пример показывает полный процесс реализации MapReduce задачи на Java для подсчета количества различных фигур в наборе данных, хранящемся в HDFS.
