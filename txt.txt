@@ -354,3 +354,44 @@ public class ShapeCount {
 
 ### Заключение
 Этот пример показывает полный процесс реализации MapReduce задачи на Java для подсчета количества различных фигур в наборе данных, хранящемся в HDFS.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+sqoop import-all-tables \ 
+-m 1 \ 
+--connect jdbc:mysql://quickstart:3306/retail_db \ 
+--username=retail_dba \ 
+--password=cloudera \ 
+--compression-codec=snappy \ 
+--as-parquetfile \ 
+--warehouse-dir=/user/hive/warehouse \ 
+--hive-import
