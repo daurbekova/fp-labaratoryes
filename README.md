@@ -175,6 +175,7 @@ triangle  1
 
 
 package mapReduce;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -182,16 +183,33 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+
 public class ShapeCount {
-public static void main(String[] args) throws Exception { Configuration conf new Configuration(); Job job Job.getInstance(conf, "shape count");
-job.setJarByClass (ShapeCount.class); job.setMapperClass (ShapeMapper.class); job.setCombinerClass (ShapeReducer.class); job.setReducerClass (ShapeReducer.class);
-job.setOutputKeyClass (Text.class); job.setOutputValueClass (IntWritable.class);
-FileInputFormat.addInputPath(job, new Path(args[0])); FileOutputFormat.setOutputPath(job, new Path(args[1])); //
-//
-путь
-Выходной
-Входной
-путь
-System.exit(job.waitForCompletion(true) ? 0:1);
+    public static void main(String[] args) throws Exception {
+        // Жаңа конфигурацияны жасаймыз
+        Configuration conf = new Configuration();
+        
+        // Job объектісін жасаймыз
+        Job job = Job.getInstance(conf, "shape count");
+
+        // Жұмыс класын көрсетеміз
+        job.setJarByClass(ShapeCount.class);
+
+        // Mapper, Combiner және Reducer кластарын орнатамыз
+        job.setMapperClass(ShapeMapper.class);
+        job.setCombinerClass(ShapeReducer.class);
+        job.setReducerClass(ShapeReducer.class);
+
+        // Шығыстың кілт және мән сыныптарын орнатамыз
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(IntWritable.class);
+
+        // Кіріс және шығыс файлдарының жолдарын қосамыз
+        FileInputFormat.addInputPath(job, new Path(args[0]));
+        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+
+        // Жұмысты орындап, нәтижеге байланысты шығамыз
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
 }
-}
+
