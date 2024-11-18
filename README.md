@@ -213,3 +213,34 @@ public class ShapeCount {
     }
 }
 https://ocw.mit.edu/ans7870/6/6.006/s08/lecturenotes/files/t8.shakespeare.txt
+
+
+
+
+
+
+1.	Установка 
+https://docs.cloudera.com/HDPDocuments/HDP2/HDP-2.6.5/bk_command-line-installation/content/validate_kafka.html
+Или
+https://www.clairvoyant.ai/blog/installing-apache-kafka-on-clouderas-quickstart-vm
+Документация (дополнительно): https://docs.cloudera.com/documentation/kafka/latest/topics/kafka_installing.html#concept_m2t_d45_4r
+https://towardsdatascience.com/apache-kafka-and-flume-installation-guide-import-data-from-kafka-to-hdfs-c908b0df034c
+
+2.	Выполнить задание быстрый старт
+https://kafka.apache.org/quickstart
+
+
+
+3.	Выполнить задание со страниц 17-20 (запустить все команды)
+https://docs.cloudera.com/documentation/enterprise/6/6.3/PDF/cloudera-kafka.pdf
+
+Подготовиться на вопросы по теме:
+•	Kafka Clients
+•	Kafka Producers
+•	Kafka Consumers
+•	Kafka Brokers
+•	MirrorMaker
+•	Kafka Brokers and ZooKeeper
+
+
+
